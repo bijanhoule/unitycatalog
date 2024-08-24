@@ -12,8 +12,7 @@ def test_list_schemas(spark: SparkSession):
 def test_list_tables(spark: SparkSession):
     assert spark.sql("show tables in default").toJSON().collect() == [
         '{"namespace":"default","tableName":"marksheet","isTemporary":false}',
-        # todo: put this back in once i figure out uniform table bootstrapping
-        # '{"namespace":"default","tableName":"marksheet_uniform","isTemporary":false}',
+        '{"namespace":"default","tableName":"marksheet_uniform","isTemporary":false}',
         '{"namespace":"default","tableName":"numbers","isTemporary":false}',
         '{"namespace":"default","tableName":"user_countries","isTemporary":false}'
     ]

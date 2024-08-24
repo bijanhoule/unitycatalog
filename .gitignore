@@ -1,6 +1,8 @@
 etc/db/h2db.mv.db
 target/
 
+integration-tests/etc/db/h2db-test.trace.db
+
 # Intellij IDEA files
 .idea/
 *.iml

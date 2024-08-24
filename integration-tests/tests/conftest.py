@@ -1,10 +1,9 @@
 import os
+import pytest
 import signal
 import subprocess as sp
 import time
 from pathlib import Path
-
-import pytest
 from pyspark.sql import SparkSession
 
 
@@ -74,32 +73,3 @@ def build_package_list() -> str:
         f"io.delta:delta-spark_2.12:{Settings.DELTA_SPARK_VERSION}",
         f"org.apache.hadoop:hadoop-aws:3.3.2",
     ])
-
-
-@pytest.fixture(scope="session", autouse=True)
-def catalog_setup(unitycatalog_server, spark):
-    # use the UC CLI to set up testing database
-    sp.check_call([Paths.BIN_DIR / "uc", "catalog", "create", "--name", "unity"])
-    sp.check_call([Paths.BIN_DIR / "uc", "schema", "create", "--catalog", "unity", "--name", "default"])
-
-    sp.check_call([Paths.BIN_DIR / "uc", "table", "create",
-                   "--full_name", "unity.default.marksheet",
-                   "--storage_location", str((Paths.MANAGED_TABLES_DIR / "marksheet").absolute()),
-                   "--columns", ""])
-
-    sp.check_call([Paths.BIN_DIR / "uc", "table", "create",
-                   "--full_name", "unity.default.numbers",
-                   "--storage_location", str((Paths.EXTERNAL_TABLES_DIR / "numbers").absolute()),
-                   "--columns", ""])
-
-    sp.check_call([Paths.BIN_DIR / "uc", "table", "create",
-                   "--full_name", "unity.default.user_countries",
-                   "--storage_location", str((Paths.EXTERNAL_TABLES_DIR / "user_countries").absolute()),
-                   "--columns", ""])
-
-    # todo: figure out how to create the uniform table
-    # sp.check_call([Paths.BIN_DIR / "uc", "table", "create",
-    #                "--full_name", "unity.default.marksheet_uniform",
-    #                "--storage_location", str((Paths.EXTERNAL_TABLES_DIR / "marksheet_uniform").absolute()),
-    #                "--columns", ""])
-    yield
