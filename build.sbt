@@ -222,6 +222,9 @@ lazy val server = (project in file("server"))
 
       //For s3 access
       "com.amazonaws" % "aws-java-sdk-s3" % "1.12.728",
+      "software.amazon.awssdk" % "sso" % "2.27.12",
+      "software.amazon.awssdk" % "ssooidc" % "2.27.12",
+
       "org.apache.httpcomponents" % "httpcore" % "4.4.16",
       "org.apache.httpcomponents" % "httpclient" % "4.5.14",
 

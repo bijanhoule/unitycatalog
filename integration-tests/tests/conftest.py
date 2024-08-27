@@ -21,9 +21,10 @@ class Settings:
     IVY_HOME = os.getenv("IVY_HOME", os.path.expanduser("~/.ivy2"))
     UC_VERSION = "0.2.0-SNAPSHOT"
     DELTA_SPARK_VERSION = "3.2.0"
+    HADOOP_AWS_VERSION = "3.3.4"
     URI = "http://localhost:8080"
     TOKEN = ""
-    CATALOG_NAME = "unity"
+    CATALOG_NAME = "spark_catalog"
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -50,8 +51,6 @@ def spark():
         .appName("uc-integration-tests")
         .master("local[*]")
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-        # needed for the default `spark_catalog`
-        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
         .config("spark.hadoop.fs.s3.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
         .config("spark.jars.ivy", Settings.IVY_HOME)
         .config("spark.jars.packages", build_package_list())
@@ -71,5 +70,5 @@ def build_package_list() -> str:
     return ",".join([
         f"io.unitycatalog:unitycatalog-spark:{Settings.UC_VERSION}",
         f"io.delta:delta-spark_2.12:{Settings.DELTA_SPARK_VERSION}",
-        f"org.apache.hadoop:hadoop-aws:3.3.2",
+        f"org.apache.hadoop:hadoop-aws:{Settings.HADOOP_AWS_VERSION}",
     ])
