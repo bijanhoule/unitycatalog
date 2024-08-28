@@ -1,10 +1,9 @@
-import os
+import subprocess as sp
 
 import pytest
 from pyspark.sql import SparkSession
 
-# e.g. s3://my-bucket/prefix/path/to/my/table/metadata
-S3_TEST_LOCATION = os.getenv("S3_TEST_LOCATION")
+from conftest import Settings, Paths
 
 
 @pytest.mark.skip("Not yet working in vended credential path")
@@ -13,11 +12,56 @@ def test_create_table(spark: SparkSession):
         CREATE TABLE IF NOT EXISTS 
         s3.numbers_s3_parquet(as_int int, as_double double) 
         USING PARQUET
-        LOCATION '{S3_TEST_LOCATION}'
+        LOCATION '{Paths.S3_TEST_PARQUET_FILE}'
     """).show()
 
 
-def test_s3_read_vended_credentials(spark: SparkSession):
+@pytest.fixture(scope="session")
+def create_if_not_exists():
+    # todo: remove this workaround once table create works as expected
+    assert Paths.S3_TEST_PARQUET_FILE
+
+    create_table_cmd = """
+        curl -X 'POST' \
+          'http://localhost:8080/api/2.1/unity-catalog/tables' \
+          -H 'accept: application/json' \
+          -H 'Content-Type: application/json' \
+          -d '{
+          "name": "numbers_s3_parquet",
+          "catalog_name": "%s",
+          "schema_name": "s3",
+          "table_type": "EXTERNAL",
+          "data_source_format": "PARQUET",
+          "columns": [
+            {
+              "name": "as_int",
+              "type_text": "int",
+              "type_json": "integer",
+              "type_name": "INT",
+              "position": 0,
+              "nullable": true
+            },
+            {
+              "name": "as_double",
+              "type_text": "double",
+              "type_json": "double",
+              "type_name": "DOUBLE",
+              "position": 1,
+              "nullable": true
+            }
+          ],
+          "storage_location": "%s",
+          "comment": "parquet file in s3",
+          "properties": {}
+        }'
+    """ % (Settings.CATALOG_NAME, Paths.S3_TEST_PARQUET_FILE)
+    output = sp.check_output(create_table_cmd, shell=True, universal_newlines=True)
+    if "error code" in output and "ALREADY EXISTS" not in output:
+        raise RuntimeError(f"Couldn't create S3 test table: {output}")
+    yield
+
+
+def test_s3_read_vended_credentials(spark: SparkSession, create_if_not_exists):
     result = spark.sql("select * from s3.numbers_s3_parquet").toJSON().collect()
     assert result == ['{"as_int":564,"as_double":188.75535598441473}', '{"as_int":755,"as_double":883.6105633023361}',
                       '{"as_int":644,"as_double":203.4395591086936}', '{"as_int":75,"as_double":277.8802190765611}',

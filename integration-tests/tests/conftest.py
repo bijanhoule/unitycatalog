@@ -15,6 +15,9 @@ class Paths:
     MANAGED_TABLES_DIR = DATA_DIR / "managed" / "unity" / "default" / "tables"
     EXTERNAL_TABLES_DIR = DATA_DIR / "external" / "unity" / "default" / "tables"
 
+    # e.g. s3://my-bucket/prefix/path/to/my/table/file.parquet
+    S3_TEST_PARQUET_FILE = os.getenv("S3_TEST_PARQUET_FILE")
+
 
 # todo: parameterize
 class Settings:
