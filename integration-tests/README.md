@@ -9,10 +9,12 @@
 - Run `build/sbt clean package publishLocal spark/publishLocal` to publish spark connector to local maven cache
 - Install [poetry](https://python-poetry.org/docs/#installation)
 - Run `poetry install` to initialize testing env
-- Set up a testing S3 bucket and IAM role, and add those to integration test [server.properties](./etc/conf/server.properties)
+- Set up a testing S3 bucket and IAM role
   - IAM Role needs trust policy so that the identity running the UC server can assume
   - IAM role needs policy to read/write/list from s3 bucket (or at least a prefix)
   - Copy testing parquet file to your S3 bucket [d1df15d1-33d8-45ab-ad77-465476e2d5cd-000.parquet](../etc/data/external/unity/default/tables/numbers/d1df15d1-33d8-45ab-ad77-465476e2d5cd-000.parquet)
+- Update integration test [server.properties](./etc/conf/server.properties)
+  - You must set _at least_ `s3.bucketPath.0`, `s3.region.0`, and `s3.awsRoleArn.0`.
 
 ## Running tests
 
