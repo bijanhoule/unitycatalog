@@ -23,7 +23,9 @@ class Paths:
 class Settings:
     IVY_HOME = os.getenv("IVY_HOME", os.path.expanduser("~/.ivy2"))
     UC_VERSION = "0.2.0-SNAPSHOT"
-    DELTA_SPARK_VERSION = "3.2.0"
+    # todo: using a SNAPSHOT delta-spark version to include this fix: https://github.com/delta-io/delta/pull/3610
+    #  go back to a release version once this is actually released (e.g. a 3.2.x)
+    DELTA_SPARK_VERSION = "3.2.1-SNAPSHOT"
     HADOOP_AWS_VERSION = "3.3.4"
     URI = "http://localhost:8080"
     TOKEN = ""
