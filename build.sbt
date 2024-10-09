@@ -19,6 +19,9 @@ lazy val javacRelease17 = Seq("--release", "17")
 lazy val scala212 = "2.12.15"
 lazy val scala213 = "2.13.14"
 
+lazy val deltaVersion = "3.2.1"
+lazy val sparkVersion = "3.5.3"
+
 lazy val commonSettings = Seq(
   organization := orgName,
   // Compilation configs
@@ -283,6 +286,9 @@ lazy val server = (project in file("server"))
 
       //For s3 access
       "com.amazonaws" % "aws-java-sdk-s3" % "1.12.728",
+      "software.amazon.awssdk" % "sso" % "2.27.12",
+      "software.amazon.awssdk" % "ssooidc" % "2.27.12",
+
       "org.apache.httpcomponents" % "httpcore" % "4.4.16",
       "org.apache.httpcomponents" % "httpclient" % "4.5.14",
 
@@ -432,10 +438,9 @@ lazy val cli = (project in file("examples") / "cli")
       "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % jacksonVersion,
       "org.openapitools" % "jackson-databind-nullable" % openApiToolsJacksonBindNullableVersion,
       "org.yaml" % "snakeyaml" % "2.2",
-
-      "io.delta" % "delta-kernel-api" % "3.2.0",
-      "io.delta" % "delta-kernel-defaults" % "3.2.0",
-      "io.delta" % "delta-storage" % "3.2.0",
+      "io.delta" % "delta-kernel-api" % deltaVersion,
+      "io.delta" % "delta-kernel-defaults" % deltaVersion,
+      "io.delta" % "delta-storage" % deltaVersion,
       "org.apache.hadoop" % "hadoop-client-api" % "3.4.0",
       "org.apache.hadoop" % "hadoop-client-runtime" % "3.4.0",
       "de.vandermeer" % "asciitable" % "0.3.2",
@@ -443,6 +448,7 @@ lazy val cli = (project in file("examples") / "cli")
       "org.fusesource.jansi" % "jansi" % "2.4.1",
       "com.amazonaws" % "aws-java-sdk-core" % "1.12.728",
       "org.apache.hadoop" % "hadoop-aws" % "3.4.0",
+      "org.apache.hadoop" % "hadoop-azure" % "3.4.0",
       "com.google.guava" % "guava" % "31.0.1-jre",
       // Test dependencies
       "org.junit.jupiter" % "junit-jupiter" % "5.10.3" % Test,
@@ -480,7 +486,6 @@ lazy val serverShaded = (project in file("server-shaded"))
     }
   )
 
-val sparkVersion = "3.5.3"
 lazy val spark = (project in file("connectors/spark"))
   .dependsOn(client)
   .settings(
@@ -515,7 +520,7 @@ lazy val spark = (project in file("connectors/spark"))
       "org.mockito" % "mockito-junit-jupiter" % "5.12.0" % Test,
       "net.aichler" % "jupiter-interface" % JupiterKeys.jupiterVersion.value % Test,
       "org.apache.hadoop" % "hadoop-client-runtime" % "3.4.0",
-      "io.delta" %% "delta-spark" % "3.2.1" % Test,
+      "io.delta" %% "delta-spark" % deltaVersion % Test,
     ),
     dependencyOverrides ++= Seq(
       "com.fasterxml.jackson.core" % "jackson-databind" % "2.15.0",
@@ -548,6 +553,39 @@ lazy val spark = (project in file("connectors/spark"))
       case DepModuleInfo("org.glassfish.hk2.external", "jakarta.inject", _) => true
       case DepModuleInfo("org.antlr", "ST4", _) => true
     }
+  )
+
+lazy val integrationTests = (project in file("integration-tests"))
+  .settings(
+    name := s"$artifactNamePrefix-integration-tests",
+    commonSettings,
+    javaOptions ++= Seq(
+      "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED",
+    ),
+    skipReleaseSettings,
+    libraryDependencies ++= Seq(
+      "org.junit.jupiter" % "junit-jupiter" % "5.10.3" % Test,
+      "net.aichler" % "jupiter-interface" % JupiterKeys.jupiterVersion.value % Test,
+      "org.assertj" % "assertj-core" % "3.26.3" % Test,
+      "org.projectlombok" % "lombok" % "1.18.32" % Provided,
+      "org.apache.spark" %% "spark-sql" % "3.5.3" % Test,
+      "io.delta" %% "delta-spark" % "3.2.1" % Test,
+      "org.apache.hadoop" % "hadoop-aws" % "3.3.6" % Test,
+      "org.apache.hadoop" % "hadoop-azure" % "3.3.6" % Test,
+      "com.google.cloud.bigdataoss" % "gcs-connector" % "3.0.2" % Test classifier "shaded",
+      "io.unitycatalog" %% "unitycatalog-spark" % "0.2.0" % Test,
+    ),
+    dependencyOverrides ++= Seq(
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.15.0",
+      "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.15.0",
+      "com.fasterxml.jackson.core" % "jackson-annotations" % "2.15.0",
+      "com.fasterxml.jackson.core" % "jackson-core" % "2.15.0",
+      "com.fasterxml.jackson.dataformat" % "jackson-dataformat-xml" % "2.15.0",
+      "org.antlr" % "antlr4-runtime" % "4.9.3",
+      "org.antlr" % "antlr4" % "4.9.3",
+      "org.apache.hadoop" % "hadoop-client-api" % "3.3.6",
+    ),
+    Test / javaOptions += s"-Duser.dir=${((ThisBuild / baseDirectory).value / "integration-tests").getAbsolutePath}",
   )
 
 lazy val root = (project in file("."))
